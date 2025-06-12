@@ -1,0 +1,87 @@
+name: Deploy to OCI Server
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.OCI_SSH_KEY }}
+        
+    - name: Deploy to OCI Server
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.OCI_USER }}@${{ secrets.OCI_HOST }} << 'EOF'
+          # Navigate to project directory
+          cd /opt/nauticparts || { echo "Project directory not found"; exit 1; }
+          
+          # Pull latest changes
+          git pull origin main
+          
+          # Stop running containers
+          docker-compose down
+          
+          # Build and start containers
+          docker-compose up -d --build
+          
+          # Clean up unused images
+          docker image prune -f
+          
+          # Show status
+          docker-compose ps
+          
+          echo "Deployment completed successfully!"
+        EOF
+        
+    - name: Health Check
+      run: |
+        sleep 30
+        ssh -o StrictHostKeyChecking=no ${{ secrets.OCI_USER }}@${{ secrets.OCI_HOST }} << 'EOF'
+          # Check if all services are running
+          cd /opt/nauticparts
+          
+          # Check container status
+          if docker-compose ps | grep -q "Exit"; then
+            echo "Some containers failed to start:"
+            docker-compose ps
+            exit 1
+          fi
+          
+          # Test health endpoints
+          echo "Testing service health..."
+          
+          # Wait for services to be ready
+          sleep 20
+          
+          # Check Paperless NGX
+          if curl -f http://localhost:8000/admin/ >/dev/null 2>&1; then
+            echo "? Paperless NGX is healthy"
+          else
+            echo "? Paperless NGX health check failed"
+          fi
+          
+          # Check Nextcloud
+          if curl -f http://localhost:8080/ >/dev/null 2>&1; then
+            echo "? Nextcloud is healthy"
+          else
+            echo "? Nextcloud health check failed"
+          fi
+          
+          # Check Dolibarr
+          if curl -f http://localhost:8090/ >/dev/null 2>&1; then
+            echo "? Dolibarr is healthy"
+          else
+            echo "? Dolibarr health check failed"
+          fi
+          
+          echo "Health checks completed"
+        EOF
