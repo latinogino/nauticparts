@@ -1,0 +1,195 @@
+version: '3.8'
+
+services:
+  # Core Applications
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nauticparts-nextcloud
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data/nextcloud:/var/www/html
+      - ./data/shared:/shared
+    environment:
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=${NEXTCLOUD_DB_PASSWORD}
+      - MYSQL_HOST=nextcloud-db
+    depends_on:
+      - nextcloud-db
+    networks:
+      - nauticparts-network
+
+  nextcloud-db:
+    image: mariadb:latest
+    container_name: nauticparts-nextcloud-db
+    restart: unless-stopped
+    volumes:
+      - ./data/nextcloud-db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${NEXTCLOUD_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=${NEXTCLOUD_DB_PASSWORD}
+    networks:
+      - nauticparts-network
+
+  paperless-ngx:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: nauticparts-paperless
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/paperless/data:/usr/src/paperless/data
+      - ./data/paperless/media:/usr/src/paperless/media
+      - ./data/paperless/export:/usr/src/paperless/export
+      - ./data/paperless/consume:/usr/src/paperless/consume
+      - ./data/shared:/shared
+    environment:
+      - PAPERLESS_REDIS=redis://redis:6379
+      - PAPERLESS_DBHOST=paperless-db
+      - PAPERLESS_DBNAME=paperless
+      - PAPERLESS_DBUSER=paperless
+      - PAPERLESS_DBPASS=${PAPERLESS_DB_PASSWORD}
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
+      - PAPERLESS_URL=http://oci-server:8000
+      - PAPERLESS_CONSUMER_POLLING=30
+      - PAPERLESS_OCR_LANGUAGE=deu+eng
+      - PAPERLESS_ENABLE_HTTP_REMOTE_USER=true
+    depends_on:
+      - paperless-db
+      - redis
+    networks:
+      - nauticparts-network
+
+  paperless-db:
+    image: postgres:15
+    container_name: nauticparts-paperless-db
+    restart: unless-stopped
+    volumes:
+      - ./data/paperless-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=paperless
+      - POSTGRES_USER=paperless
+      - POSTGRES_PASSWORD=${PAPERLESS_DB_PASSWORD}
+    networks:
+      - nauticparts-network
+
+  redis:
+    image: redis:7
+    container_name: nauticparts-redis
+    restart: unless-stopped
+    networks:
+      - nauticparts-network
+
+  dolibarr:
+    image: dolibarr/dolibarr:latest
+    container_name: nauticparts-dolibarr
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - ./data/dolibarr:/var/www/html
+    environment:
+      - DOLI_DB_HOST=dolibarr-db
+      - DOLI_DB_NAME=dolibarr
+      - DOLI_DB_USER=dolibarr
+      - DOLI_DB_PASSWORD=${DOLIBARR_DB_PASSWORD}
+      - DOLI_ADMIN_LOGIN=admin
+      - DOLI_ADMIN_PASSWORD=${DOLIBARR_ADMIN_PASSWORD}
+    depends_on:
+      - dolibarr-db
+    networks:
+      - nauticparts-network
+
+  dolibarr-db:
+    image: mariadb:latest
+    container_name: nauticparts-dolibarr-db
+    restart: unless-stopped
+    volumes:
+      - ./data/dolibarr-db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DOLIBARR_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=dolibarr
+      - MYSQL_USER=dolibarr
+      - MYSQL_PASSWORD=${DOLIBARR_DB_PASSWORD}
+    networks:
+      - nauticparts-network
+
+  # Custom Services
+  document-watcher:
+    build: ./services/document-watcher
+    container_name: nauticparts-document-watcher
+    restart: unless-stopped
+    volumes:
+      - ./data/shared:/shared
+      - ./data/paperless/consume:/paperless-consume
+    environment:
+      - WATCH_FOLDER=/shared
+      - PAPERLESS_CONSUME_FOLDER=/paperless-consume
+      - LOG_LEVEL=INFO
+    networks:
+      - nauticparts-network
+
+  image-extractor:
+    build: ./services/image-extractor
+    container_name: nauticparts-image-extractor
+    restart: unless-stopped
+    volumes:
+      - ./data/shared:/shared
+      - ./data/paperless/media:/paperless-media
+    environment:
+      - INPUT_FOLDER=/shared
+      - OUTPUT_FOLDER=/paperless-media/extracted_images
+      - LOG_LEVEL=INFO
+    networks:
+      - nauticparts-network
+
+  webhook-handler:
+    build: ./services/webhook-handler
+    container_name: nauticparts-webhook-handler
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - CLAUDE_MCP_URL=${CLAUDE_MCP_URL}
+      - PAPERLESS_API_URL=http://paperless-ngx:8000
+      - PAPERLESS_API_TOKEN=${PAPERLESS_API_TOKEN}
+      - LOG_LEVEL=INFO
+    networks:
+      - nauticparts-network
+
+  dolibarr-connector:
+    build: ./services/dolibarr-connector
+    container_name: nauticparts-dolibarr-connector
+    restart: unless-stopped
+    environment:
+      - DOLIBARR_URL=http://dolibarr:80
+      - DOLIBARR_API_KEY=${DOLIBARR_API_KEY}
+      - LOG_LEVEL=INFO
+    networks:
+      - nauticparts-network
+
+  whatsapp-mcp:
+    build: ./services/whatsapp-mcp
+    container_name: nauticparts-whatsapp-mcp
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data/whatsapp:/app/store
+    environment:
+      - PORT=3001
+      - LOG_LEVEL=INFO
+    networks:
+      - nauticparts-network
+
+networks:
+  nauticparts-network:
+    driver: bridge
+
+volumes:
+  shared-data:
+    driver: local
