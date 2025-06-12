@@ -2,7 +2,7 @@
 
 An intelligent document management system for nautical parts with automated AI processing, built on Paperless NGX, Claude AI integration, and ERP synchronization.
 
-## ?? Architecture Overview
+## Architecture Overview
 
 ```
 Gabriel ? Nextcloud ? Auto Processing ? Paperless NGX ? Claude AI ? Dolibarr ERP
@@ -10,7 +10,7 @@ Gabriel ? Nextcloud ? Auto Processing ? Paperless NGX ? Claude AI ? Dolibarr ERP
        File Sync    Image Extract    OCR/Index   Product ID    ? WhatsApp
 ```
 
-## ? Detailed Workflow Diagram
+## Detailed Workflow Diagram
 
 ```mermaid
 flowchart TD
@@ -161,7 +161,7 @@ flowchart TD
     style N4 fill:#f3e5f5
 ```
 
-### ? Workflow Legend
+### Workflow Legend
 
 | Symbol | Component Type | Description |
 |--------|---------------|-------------|
@@ -171,38 +171,38 @@ flowchart TD
 | ? | **Built-in Features** | Native functionality of tools |
 | ? | **MCP Connections** | Claude Desktop integrations |
 
-## ? Features
+## Features
 
-- ? **Automatic Document Processing**: PDF/DOCX files are automatically processed and imported
-- ?? **Image Extraction**: Automatically extracts product images from documents
-- ? **AI Product Recognition**: Claude AI identifies and extracts product information
-- ? **WhatsApp Integration**: Query documents and manage products via WhatsApp
-- ? **ERP Integration**: Automatic product creation in Dolibarr ERP system
-- ? **Containerized Deployment**: Complete Docker-based infrastructure
+- **Automatic Document Processing**: PDF/DOCX files are automatically processed and imported
+- **Image Extraction**: Automatically extracts product images from documents
+- **AI Product Recognition**: Claude AI identifies and extracts product information
+- **WhatsApp Integration**: Query documents and manage products via WhatsApp
+- **ERP Integration**: Automatic product creation in Dolibarr ERP system
+- **Containerized Deployment**: Complete Docker-based infrastructure
 
-## ? Components
+## Components
 
-### ? Core Applications (Docker Containers)
+### Core Applications (Docker Containers)
 - **Nextcloud**: File synchronization and storage
 - **Paperless NGX**: Document management and OCR
 - **Dolibarr**: ERP system for product management
 - **Redis**: Caching and queue management
 - **PostgreSQL/MariaDB**: Database systems
 
-### ? Custom Services
+### Custom Services
 - **Document Watcher**: Monitors for new files and triggers processing
 - **Image Extractor**: Extracts images from PDF/DOCX documents
 - **Webhook Handler**: Processes Paperless NGX webhooks and communicates with Claude
 - **Dolibarr Connector**: Creates products in ERP system
 - **WhatsApp MCP**: Enables WhatsApp communication with Claude AI
 
-### ? Built-in Tool Features
+### Built-in Tool Features
 - **Paperless NGX**: OCR, indexing, tagging, webhooks, search API
 - **Claude Desktop**: Document analysis, decision making, data extraction, response generation
 - **Dolibarr ERP**: Product storage, REST API, database management
 - **Nextcloud**: File synchronization, storage
 
-## ? Quick Start
+## Quick Start
 
 ### Prerequisites
 - Docker and Docker Compose
@@ -253,7 +253,7 @@ flowchart TD
    }
    ```
 
-## ? Usage
+## Usage
 
 ### Document Processing
 1. Save PDF/DOCX files to your Nextcloud sync folder
@@ -273,7 +273,7 @@ flowchart TD
 - *"Check OCI server disk usage"* ? MCP SSH
 - *"Send status update via WhatsApp"* ? MCP WhatsApp
 
-## ? Directory Structure
+## Directory Structure
 
 ```
 nauticparts/
@@ -290,7 +290,7 @@ nauticparts/
 ??? docs/                     # Additional documentation
 ```
 
-## ? Service Configuration
+## Service Configuration
 
 ### Required Environment Variables
 
@@ -315,7 +315,7 @@ nauticparts/
 | Webhook Handler | 3000 | Claude integration |
 | WhatsApp MCP | 3001 | WhatsApp communication |
 
-## ?? Development
+## Development
 
 ### Local Development
 ```bash
@@ -337,7 +337,7 @@ Push to main branch triggers automatic deployment via GitHub Actions to OCI serv
 - `OCI_USER`: Server username  
 - `OCI_SSH_KEY`: SSH private key for server access
 
-## ? Workflow Process
+## Workflow Process
 
 1. **Document Upload**: Gabriel saves PDF/DOCX to Nextcloud folder
 2. **File Monitoring**: Document watcher detects new files
@@ -348,13 +348,13 @@ Push to main branch triggers automatic deployment via GitHub Actions to OCI serv
 7. **User Confirmation**: Approval via Claude Desktop or WhatsApp
 8. **ERP Creation**: Approved products created in Dolibarr
 
-## ? Support
+## Support
 
-- ? [Documentation](./docs/)
-- ? [Issues](https://github.com/latinogino/nauticparts/issues)
-- ? [Discussions](https://github.com/latinogino/nauticparts/discussions)
+- [Documentation](./docs/)
+- [Issues](https://github.com/latinogino/nauticparts/issues)
+- [Discussions](https://github.com/latinogino/nauticparts/discussions)
 
-## ? License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
