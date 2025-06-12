@@ -14,37 +14,37 @@ Gabriel ? Nextcloud ? Auto Processing ? Paperless NGX ? Claude AI ? Dolibarr ERP
 
 ```mermaid
 flowchart TD
-    A[Gabriel] -->|Save PDF/DOCX| B[Nextcloud Sync Folder ?]
-    B -->|File Monitor| C[Document Watcher Script ?]
-    C -->|New File Detected| D[Image Extraction Service ?]
-    D -->|Process Images| E[Auto Import Service ?]
-    E -->|Import Document| F[Paperless NGX ?]
+    A[Gabriel] -->|Save PDF/DOCX| B[Nextcloud Sync Folder DOCKER]
+    B -->|File Monitor| C[Document Watcher Script CUSTOM]
+    C -->|New File Detected| D[Image Extraction Service CUSTOM]
+    D -->|Process Images| E[Auto Import Service CUSTOM]
+    E -->|Import Document| F[Paperless NGX DOCKER]
     
-    F -->|Built-in OCR & Indexing| G[Document Processing ?]
-    G -->|Built-in Text Extract| H[Text Indexing ?]
-    G -->|Built-in Image Storage| I[Image Storage ?]
-    G -->|Built-in Auto-Tagging| J[Tag Management ?]
+    F -->|Built-in OCR & Indexing| G[Document Processing BUILTIN]
+    G -->|Built-in Text Extract| H[Text Indexing BUILTIN]
+    G -->|Built-in Image Storage| I[Image Storage BUILTIN]
+    G -->|Built-in Auto-Tagging| J[Tag Management BUILTIN]
     
-    H --> K[Search Index ?]
+    H --> K[Search Index BUILTIN]
     I --> K
     J --> K
     
-    F -->|Built-in Webhook| L[Document Trigger ?]
-    L -->|HTTP POST| M[Webhook Handler Script ?]
-    M -->|MCP Docker Protocol| N[Claude Desktop ?]
-    N -->|Built-in Analysis| O{Is this a Product? ?}
-    O -->|Yes| P[Extract Product Data ?]
+    F -->|Built-in Webhook| L[Document Trigger BUILTIN]
+    L -->|HTTP POST| M[Webhook Handler Script CUSTOM]
+    M -->|MCP Docker Protocol| N[Claude Desktop CLIENT]
+    N -->|Built-in Analysis| O{Is this a Product? BUILTIN}
+    O -->|Yes| P[Extract Product Data BUILTIN]
     O -->|No| Q[Ignore]
     
-    P --> R[Generate ERP Proposal ?]
-    R --> S[User Confirmation via Chat ?]
-    S -->|Approved| T[Dolibarr API Connector ?]
+    P --> R[Generate ERP Proposal BUILTIN]
+    R --> S[User Confirmation via Chat CLIENT]
+    S -->|Approved| T[Dolibarr API Connector CUSTOM]
     S -->|Rejected| Q
     
-    A -->|WhatsApp Message| U[WhatsApp MCP Server ?]
+    A -->|WhatsApp Message| U[WhatsApp MCP Server CUSTOM]
     U -->|MCP WhatsApp Protocol| N
     
-    N -->|MCP Docker Query| V[Paperless NGX API ?]
+    N -->|MCP Docker Query| V[Paperless NGX API BUILTIN]
     V -->|Return Results| K
     K -->|Document Data| V
     V -->|Structured Data| N
@@ -52,22 +52,22 @@ flowchart TD
     N -->|Built-in Response| U
     U -->|Answer| A
     
-    T -->|REST API| W[Dolibarr ERP ?]
-    W -->|Built-in Storage| X[Product Database ?]
+    T -->|REST API| W[Dolibarr ERP DOCKER]
+    W -->|Built-in Storage| X[Product Database BUILTIN]
     
-    subgraph "? Laptop (Gabriel)"
+    subgraph "CLIENT - Laptop (Gabriel)"
         N[Claude Desktop with MCP Connections]
         S
     end
     
-    subgraph "? OCI Server"
-        subgraph "? Docker Containers"
+    subgraph "SERVER - OCI Server"
+        subgraph "DOCKER - Docker Containers"
             B
             F
             W
         end
         
-        subgraph "? Custom Services"
+        subgraph "CUSTOM - Custom Services"
             C
             D
             E
@@ -76,7 +76,7 @@ flowchart TD
             U
         end
         
-        subgraph "? Built-in Features"
+        subgraph "BUILTIN - Built-in Features"
             G
             H
             I
@@ -90,17 +90,17 @@ flowchart TD
             X
         end
         
-        subgraph "?? GitHub Actions Deploy"
-            Y[Code Repository ?]
-            Z[CI/CD Pipeline ?]
+        subgraph "DEPLOY - GitHub Actions Deploy"
+            Y[Code Repository CUSTOM]
+            Z[CI/CD Pipeline CUSTOM]
         end
     end
     
-    subgraph "? Claude MCP Connections"
-        N1[MCP Docker ?]
-        N2[MCP GitHub ?]
-        N3[MCP WhatsApp ?]
-        N4[MCP SSH ?]
+    subgraph "MCP - Claude MCP Connections"
+        N1[MCP Docker BUILTIN]
+        N2[MCP GitHub BUILTIN]
+        N3[MCP WhatsApp BUILTIN]
+        N4[MCP SSH BUILTIN]
     end
     
     N -.-> N1
@@ -117,7 +117,7 @@ flowchart TD
     
     N3 -.->|WhatsApp Integration| U
     
-    N4 -.->|Server Access & Troubleshooting| OCI[OCI Server ?]
+    N4 -.->|Server Access & Troubleshooting| OCI[OCI Server]
     
     Y -->|Automated Deploy| Z
     Z -->|Deploy to Server| C
@@ -165,11 +165,11 @@ flowchart TD
 
 | Symbol | Component Type | Description |
 |--------|---------------|-------------|
-| ? | **Client PC** | Gabriel's laptop with Claude Desktop |
-| ? | **Docker Containers** | Core applications on OCI server |
-| ? | **Custom Services** | Python/Node.js scripts we develop |
-| ? | **Built-in Features** | Native functionality of tools |
-| ? | **MCP Connections** | Claude Desktop integrations |
+| CLIENT | **Client PC** | Gabriel's laptop with Claude Desktop |
+| DOCKER | **Docker Containers** | Core applications on OCI server |
+| CUSTOM | **Custom Services** | Python/Node.js scripts we develop |
+| BUILTIN | **Built-in Features** | Native functionality of tools |
+| MCP | **MCP Connections** | Claude Desktop integrations |
 
 ## Features
 
