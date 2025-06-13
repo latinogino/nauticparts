@@ -118,7 +118,7 @@ services:
     networks:
       - nauticparts-network
 
-  # Custom Services
+  # Essential Custom Services
   document-watcher:
     build: ./services/document-watcher
     container_name: nauticparts-document-watcher
@@ -129,34 +129,6 @@ services:
     environment:
       - WATCH_FOLDER=/shared
       - PAPERLESS_CONSUME_FOLDER=/paperless-consume
-      - LOG_LEVEL=INFO
-    networks:
-      - nauticparts-network
-
-  image-extractor:
-    build: ./services/image-extractor
-    container_name: nauticparts-image-extractor
-    restart: unless-stopped
-    volumes:
-      - ./data/shared:/shared
-      - ./data/paperless/media:/paperless-media
-    environment:
-      - INPUT_FOLDER=/shared
-      - OUTPUT_FOLDER=/paperless-media/extracted_images
-      - LOG_LEVEL=INFO
-    networks:
-      - nauticparts-network
-
-  webhook-handler:
-    build: ./services/webhook-handler
-    container_name: nauticparts-webhook-handler
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - CLAUDE_MCP_URL=${CLAUDE_MCP_URL}
-      - PAPERLESS_API_URL=http://paperless-ngx:8000
-      - PAPERLESS_API_TOKEN=${PAPERLESS_API_TOKEN}
       - LOG_LEVEL=INFO
     networks:
       - nauticparts-network
@@ -185,6 +157,21 @@ services:
       - LOG_LEVEL=INFO
     networks:
       - nauticparts-network
+
+  # Optional Services (For Future Implementation)
+  # image-extractor:
+  #   build: ./services/image-extractor
+  #   container_name: nauticparts-image-extractor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./data/shared:/shared
+  #     - ./data/paperless/media:/paperless-media
+  #   environment:
+  #     - INPUT_FOLDER=/shared
+  #     - OUTPUT_FOLDER=/paperless-media/extracted_images
+  #     - LOG_LEVEL=INFO
+  #   networks:
+  #     - nauticparts-network
 
 networks:
   nauticparts-network:
