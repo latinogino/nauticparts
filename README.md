@@ -5,161 +5,142 @@ An intelligent document management system for nautical parts with automated AI p
 ## Architecture Overview
 
 ```
-Gabriel ? Nextcloud ? Auto Processing ? Paperless NGX ? Claude AI ? Dolibarr ERP
-             ?             ?             ?          ?
-       File Sync    Image Extract    OCR/Index   Product ID    ? WhatsApp
+Gabriel ? Nextcloud ? Auto Processing ? Paperless NGX ? Claude AI (via MCP) ? Dolibarr ERP
+             ?             ?             ?                      ?
+       File Sync    Auto Import     OCR/Index              Product ID    ? WhatsApp
 ```
 
-## Detailed Workflow Diagram
+## Simplified Workflow Diagram
 
 ```mermaid
 flowchart TD
     A[Gabriel] -->|Save PDF/DOCX| B[Nextcloud Sync Folder DOCKER]
     B -->|File Monitor| C[Document Watcher Script CUSTOM]
-    C -->|New File Detected| D[Image Extraction Service CUSTOM]
-    D -->|Process Images| E[Auto Import Service CUSTOM]
-    E -->|Import Document| F[Paperless NGX DOCKER]
+    C -->|New File Detected| D[Auto Import Service CUSTOM]
+    D -->|Import Document| E[Paperless NGX DOCKER]
     
-    F -->|Built-in OCR & Indexing| G[Document Processing BUILTIN]
-    G -->|Built-in Text Extract| H[Text Indexing BUILTIN]
-    G -->|Built-in Image Storage| I[Image Storage BUILTIN]
-    G -->|Built-in Auto-Tagging| J[Tag Management BUILTIN]
+    E -->|Built-in OCR & Indexing| F[Document Processing BUILTIN]
+    F -->|Built-in Text Extract| G[Text Indexing BUILTIN]
+    F -->|Built-in Auto-Tagging| H[Tag Management BUILTIN]
     
-    H --> K[Search Index BUILTIN]
-    I --> K
-    J --> K
+    G --> I[Search Index BUILTIN]
+    H --> I
     
-    F -->|Built-in Webhook| L[Document Trigger BUILTIN]
-    L -->|HTTP POST| M[Webhook Handler Script CUSTOM]
-    M -->|MCP Docker Protocol| N[Claude Desktop CLIENT]
-    N -->|Built-in Analysis| O{Is this a Product? BUILTIN}
-    O -->|Yes| P[Extract Product Data BUILTIN]
-    O -->|No| Q[Ignore]
+    A -->|WhatsApp Message| J[WhatsApp MCP Server CUSTOM]
+    J -->|MCP WhatsApp Protocol| K[Claude Desktop CLIENT]
     
-    P --> R[Generate ERP Proposal BUILTIN]
-    R --> S[User Confirmation via Chat CLIENT]
-    S -->|Approved| T[Dolibarr API Connector CUSTOM]
-    S -->|Rejected| Q
+    K -->|MCP Paperless Protocol| L[Paperless MCP Server EXTERNAL]
+    L -->|Paperless API| E
+    E -->|Document Data| L
+    L -->|Structured Data| K
     
-    A -->|WhatsApp Message| U[WhatsApp MCP Server CUSTOM]
-    U -->|MCP WhatsApp Protocol| N
+    K -->|Built-in Analysis| M{Is this a Product? BUILTIN}
+    M -->|Yes| N[Extract Product Data BUILTIN]
+    M -->|No| O[Regular Query Response]
     
-    N -->|MCP Docker Query| V[Paperless NGX API BUILTIN]
-    V -->|Return Results| K
-    K -->|Document Data| V
-    V -->|Structured Data| N
+    N --> P[Generate ERP Proposal BUILTIN]
+    P --> Q[User Confirmation via Chat CLIENT]
+    Q -->|Approved| R[Dolibarr API Connector CUSTOM]
+    Q -->|Rejected| O
     
-    N -->|Built-in Response| U
-    U -->|Answer| A
+    K -->|Built-in Response| J
+    J -->|Answer| A
     
-    T -->|REST API| W[Dolibarr ERP DOCKER]
-    W -->|Built-in Storage| X[Product Database BUILTIN]
+    R -->|REST API| S[Dolibarr ERP DOCKER]
+    S -->|Built-in Storage| T[Product Database BUILTIN]
     
     subgraph "CLIENT - Laptop (Gabriel)"
-        N[Claude Desktop with MCP Connections]
-        S
+        K[Claude Desktop with MCP Connections]
+        Q
+    end
+    
+    subgraph "EXTERNAL - Third Party MCP"
+        L[Paperless MCP Server by nloui]
     end
     
     subgraph "SERVER - OCI Server"
         subgraph "DOCKER - Docker Containers"
             B
-            F
-            W
+            E
+            S
         end
         
         subgraph "CUSTOM - Custom Services"
             C
             D
-            E
-            M
-            T
-            U
+            J
+            R
         end
         
         subgraph "BUILTIN - Built-in Features"
+            F
             G
             H
             I
-            J
-            K
-            L
-            O
+            M
+            N
             P
-            R
-            V
-            X
+            T
         end
         
-        subgraph "DEPLOY - GitHub Actions Deploy"
-            Y[Code Repository CUSTOM]
-            Z[CI/CD Pipeline CUSTOM]
+        subgraph "OPTIONAL - Future Implementation"
+            U[Image Extraction Service]
         end
     end
     
     subgraph "MCP - Claude MCP Connections"
-        N1[MCP Docker BUILTIN]
-        N2[MCP GitHub BUILTIN]
-        N3[MCP WhatsApp BUILTIN]
-        N4[MCP SSH BUILTIN]
+        V[MCP Docker BUILTIN]
+        W[MCP GitHub BUILTIN]
+        X[MCP WhatsApp BUILTIN]
+        Y[MCP SSH BUILTIN]
+        Z[MCP Paperless EXTERNAL]
     end
     
-    N -.-> N1
-    N -.-> N2
-    N -.-> N3
-    N -.-> N4
+    K -.-> V
+    K -.-> W
+    K -.-> X
+    K -.-> Y
+    K -.-> Z
     
-    N1 -.->|Manage Containers| B
-    N1 -.->|Manage Containers| F
-    N1 -.->|Manage Containers| W
+    V -.->|Manage Containers| B
+    V -.->|Manage Containers| E
+    V -.->|Manage Containers| S
     
-    N2 -.->|Code Management| Y
-    N2 -.->|Trigger Deploy| Z
-    
-    N3 -.->|WhatsApp Integration| U
-    
-    N4 -.->|Server Access & Troubleshooting| OCI[OCI Server]
-    
-    Y -->|Automated Deploy| Z
-    Z -->|Deploy to Server| C
-    Z -->|Deploy to Server| D
-    Z -->|Deploy to Server| E
-    Z -->|Deploy to Server| M
-    Z -->|Deploy to Server| T
-    Z -->|Deploy to Server| U
+    W -.->|Code Management & Deploy| SERVER
+    X -.->|WhatsApp Integration| J
+    Y -.->|Server Troubleshooting| SERVER
+    Z -.->|Document Management| L
     
     style A fill:#e3f2fd
-    style N fill:#e3f2fd
-    style S fill:#e3f2fd
+    style K fill:#e3f2fd
+    style Q fill:#e3f2fd
     
     style B fill:#e8f5e8
-    style F fill:#e8f5e8
-    style W fill:#e8f5e8
+    style E fill:#e8f5e8
+    style S fill:#e8f5e8
     
     style C fill:#fff3e0
     style D fill:#fff3e0
-    style E fill:#fff3e0
-    style M fill:#fff3e0
-    style T fill:#fff3e0
-    style U fill:#fff3e0
-    style Y fill:#fff3e0
-    style Z fill:#fff3e0
+    style J fill:#fff3e0
+    style R fill:#fff3e0
     
-    style G fill:#f3e5f5
-    style H fill:#f3e5f5
-    style I fill:#f3e5f5
-    style J fill:#f3e5f5
-    style K fill:#f3e5f5
-    style L fill:#f3e5f5
-    style O fill:#f3e5f5
-    style P fill:#f3e5f5
-    style R fill:#f3e5f5
-    style V fill:#f3e5f5
-    style X fill:#f3e5f5
-    style N1 fill:#f3e5f5
-    style N2 fill:#f3e5f5
-    style N3 fill:#f3e5f5
-    style N4 fill:#f3e5f5
+    style L fill:#ffeb3b
+    
+    style U fill:#f0f0f0
 ```
+
+## Key Simplifications
+
+### Using Existing Paperless MCP Server
+Instead of building a custom webhook handler, we use **nloui/paperless-mcp** - a mature, feature-complete MCP server:
+
+- **Installation**: `npm install -g paperless-mcp`
+- **Configuration**: Simple Claude Desktop MCP config  
+- **Functionality**: Full document management, search, upload, tagging
+- **Maintenance**: Community-maintained, well-documented
+
+### Image Extraction - Optional
+Image extraction is marked as **optional/future enhancement** to focus on core functionality first.
 
 ### Workflow Legend
 
@@ -169,126 +150,110 @@ flowchart TD
 | DOCKER | **Docker Containers** | Core applications on OCI server |
 | CUSTOM | **Custom Services** | Python/Node.js scripts we develop |
 | BUILTIN | **Built-in Features** | Native functionality of tools |
-| MCP | **MCP Connections** | Claude Desktop integrations |
+| EXTERNAL | **Third Party** | Existing MCP servers we use |
+| OPTIONAL | **Future Features** | Later implementation |
 
-## Features
+## Core Development Scope
 
-- **Automatic Document Processing**: PDF/DOCX files are automatically processed and imported
-- **Image Extraction**: Automatically extracts product images from documents
-- **AI Product Recognition**: Claude AI identifies and extracts product information
-- **WhatsApp Integration**: Query documents and manage products via WhatsApp
-- **ERP Integration**: Automatic product creation in Dolibarr ERP system
-- **Containerized Deployment**: Complete Docker-based infrastructure
+### Must Develop (CUSTOM)
+1. **Document Watcher** - Monitor Nextcloud folder for new files
+2. **Auto Import Service** - Copy files to Paperless consume folder  
+3. **Dolibarr Connector** - Create products in ERP system
+4. **WhatsApp MCP** - Enable WhatsApp communication
 
-## Components
+### Use Existing (EXTERNAL)
+1. **Paperless MCP** - nloui/paperless-mcp for document management
 
-### Core Applications (Docker Containers)
-- **Nextcloud**: File synchronization and storage
-- **Paperless NGX**: Document management and OCR
-- **Dolibarr**: ERP system for product management
-- **Redis**: Caching and queue management
-- **PostgreSQL/MariaDB**: Database systems
-
-### Custom Services
-- **Document Watcher**: Monitors for new files and triggers processing
-- **Image Extractor**: Extracts images from PDF/DOCX documents
-- **Webhook Handler**: Processes Paperless NGX webhooks and communicates with Claude
-- **Dolibarr Connector**: Creates products in ERP system
-- **WhatsApp MCP**: Enables WhatsApp communication with Claude AI
-
-### Built-in Tool Features
-- **Paperless NGX**: OCR, indexing, tagging, webhooks, search API
-- **Claude Desktop**: Document analysis, decision making, data extraction, response generation
-- **Dolibarr ERP**: Product storage, REST API, database management
-- **Nextcloud**: File synchronization, storage
+### Built-in (No Development)
+1. **Paperless NGX** - OCR, indexing, search
+2. **Claude AI** - Document analysis, product recognition
+3. **Dolibarr** - ERP functionality
 
 ## Quick Start
 
-### Prerequisites
-- Docker and Docker Compose
-- Claude Desktop with MCP configuration
-- OCI Server or similar Linux server
+### 1. Install Paperless MCP Server
+```bash
+npm install -g paperless-mcp
+```
 
-### Installation
+### 2. Configure Claude Desktop MCP
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
-1. **Clone Repository**
-   ```bash
-   git clone https://github.com/latinogino/nauticparts.git
-   cd nauticparts
-   ```
+```json
+{
+  "mcpServers": {
+    "paperless": {
+      "command": "npx",
+      "args": ["paperless-mcp", "http://your-oci-server:8000", "your-paperless-api-token"]
+    },
+    "docker": {
+      "command": "docker-mcp-server",
+      "args": ["--host", "your-oci-server"]
+    },
+    "whatsapp": {
+      "command": "whatsapp-mcp-server",
+      "args": ["--api-url", "http://your-oci-server:3001"]
+    },
+    "ssh": {
+      "command": "ssh-mcp-server", 
+      "args": ["--host", "your-oci-server"]
+    }
+  }
+}
+```
 
-2. **Setup Environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your secure passwords and configuration
-   ```
+### 3. Deploy Core Services
+```bash
+git clone https://github.com/latinogino/nauticparts.git
+cd nauticparts
+cp .env.example .env
+# Edit .env with your configuration
+docker-compose up -d
+```
 
-3. **Deploy Services**
-   ```bash
-   docker-compose up -d
-   ```
+## Usage Examples
 
-4. **Configure Claude Desktop MCP**
-   Add to your Claude Desktop configuration:
-   ```json
-   {
-     "mcpServers": {
-       "docker": {
-         "command": "docker-mcp-server",
-         "args": ["--host", "your-oci-server"]
-       },
-       "github": {
-         "command": "github-mcp-server",
-         "args": ["--repo", "latinogino/nauticparts"]
-       },
-       "whatsapp": {
-         "command": "whatsapp-mcp-server",
-         "args": ["--api-url", "http://your-oci-server:3001"]
-       },
-       "ssh": {
-         "command": "ssh-mcp-server", 
-         "args": ["--host", "your-oci-server"]
-       }
-     }
-   }
-   ```
-
-## Usage
-
-### Document Processing
-1. Save PDF/DOCX files to your Nextcloud sync folder
-2. Files are automatically processed and imported to Paperless NGX
-3. Claude AI analyzes documents for product information
-4. Receive confirmation prompts via Claude Desktop or WhatsApp
-5. Approved products are automatically created in Dolibarr ERP
+### Document Management via Claude Desktop
+- *"Search for documents containing 'marine bearing'"*
+- *"Show me the latest nautical parts documentation"*
+- *"Upload this product specification to Paperless"*
+- *"List all documents tagged with 'engines'"*
 
 ### WhatsApp Queries
-- *"Search for bearing part 12345"*
-- *"Show me all engine documentation"*
-- *"Create product proposal for new pump"*
+- *"Find documentation for part number 12345"*
+- *"What engines do we have documentation for?"*
+- *"Create a product proposal for this new pump"*
 
-### System Management via Claude Desktop
-- *"Show me Paperless NGX container logs"* ? MCP Docker
-- *"Deploy latest code changes"* ? MCP GitHub  
-- *"Check OCI server disk usage"* ? MCP SSH
-- *"Send status update via WhatsApp"* ? MCP WhatsApp
+### Product Recognition Workflow
+1. **Document Upload**: Save PDF/DOCX to Nextcloud
+2. **Auto Processing**: Files automatically imported to Paperless
+3. **AI Analysis**: Ask Claude *"Analyze the latest document for product information"*
+4. **Product Creation**: *"Create this product in Dolibarr ERP"*
 
-## Directory Structure
+## Development Priorities
 
-```
-nauticparts/
-??? docker-compose.yml          # Main orchestration file
-??? .env.example               # Environment template
-??? services/                  # Custom service implementations
-?   ??? document-watcher/      # File monitoring service
-?   ??? image-extractor/       # PDF/DOCX image extraction
-?   ??? webhook-handler/       # Paperless webhook processor
-?   ??? dolibarr-connector/    # ERP integration service
-?   ??? whatsapp-mcp/         # WhatsApp MCP server
-??? config/                    # Configuration files
-??? .github/workflows/         # CI/CD automation
-??? docs/                     # Additional documentation
-```
+### Phase 1 - Core Functionality (Current Focus)
+- ? Repository structure
+- ? Docker Compose setup  
+- ? Paperless MCP integration
+- ? Document watcher implementation
+- ? Auto import service
+- ? Claude Desktop configuration
+
+### Phase 2 - ERP Integration
+- ? Dolibarr connector service
+- ? Product creation workflow
+- ? User confirmation interface
+
+### Phase 3 - WhatsApp Integration  
+- ? WhatsApp MCP server setup
+- ? Bi-directional communication
+- ? Natural language queries
+
+### Phase 4 - Enhancements (Optional)
+- ? Image extraction service
+- ? Advanced product recognition
+- ? Workflow automation
 
 ## Service Configuration
 
@@ -299,11 +264,10 @@ nauticparts/
 | `NEXTCLOUD_DB_PASSWORD` | Nextcloud database password |
 | `PAPERLESS_DB_PASSWORD` | Paperless NGX database password |
 | `PAPERLESS_SECRET_KEY` | Paperless NGX secret key (50+ chars) |
-| `PAPERLESS_API_TOKEN` | Paperless NGX API token |
+| `PAPERLESS_API_TOKEN` | Paperless NGX API token for MCP |
 | `DOLIBARR_DB_PASSWORD` | Dolibarr database password |
 | `DOLIBARR_ADMIN_PASSWORD` | Dolibarr admin password |
 | `DOLIBARR_API_KEY` | Dolibarr API key |
-| `CLAUDE_MCP_URL` | Claude MCP webhook URL |
 
 ### Service Endpoints
 
@@ -312,41 +276,15 @@ nauticparts/
 | Nextcloud | 8080 | File management interface |
 | Paperless NGX | 8000 | Document management |
 | Dolibarr | 8090 | ERP interface |
-| Webhook Handler | 3000 | Claude integration |
 | WhatsApp MCP | 3001 | WhatsApp communication |
 
-## Development
+## Benefits of Simplified Architecture
 
-### Local Development
-```bash
-# Start development environment
-docker-compose -f docker-compose.dev.yml up -d
-
-# View logs
-docker-compose logs -f service-name
-
-# Rebuild specific service
-docker-compose build service-name
-```
-
-### Deployment
-Push to main branch triggers automatic deployment via GitHub Actions to OCI server.
-
-### Required GitHub Secrets
-- `OCI_HOST`: Server IP address
-- `OCI_USER`: Server username  
-- `OCI_SSH_KEY`: SSH private key for server access
-
-## Workflow Process
-
-1. **Document Upload**: Gabriel saves PDF/DOCX to Nextcloud folder
-2. **File Monitoring**: Document watcher detects new files
-3. **Image Extraction**: Extract images before Paperless import
-4. **Auto Import**: Files moved to Paperless NGX consume folder
-5. **OCR Processing**: Paperless NGX processes documents
-6. **AI Analysis**: Claude analyzes via webhook for product data
-7. **User Confirmation**: Approval via Claude Desktop or WhatsApp
-8. **ERP Creation**: Approved products created in Dolibarr
+- **Faster Development** - Focus on 4 custom services instead of 6
+- **Proven Components** - Use battle-tested Paperless MCP server
+- **Maintainability** - Less custom code to maintain
+- **Reliability** - Leverage community-supported solutions
+- **Scalability** - Easy to add image extraction later
 
 ## Support
 
