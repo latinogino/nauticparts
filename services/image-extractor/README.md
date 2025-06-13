@@ -1,45 +1,63 @@
-# Image Extractor Service
+# Image Extractor Service - OPTIONAL/FUTURE
 
-Extracts images from PDF and DOCX documents with metadata preservation for Paperless NGX integration.
+This service is marked as **optional** for future implementation to focus on core functionality first.
 
-## Features
+## Planned Features (Future Implementation)
 
 - **PDF Processing**: PyMuPDF-based image extraction with page information
-- **DOCX Processing**: Direct image extraction from Office documents
+- **DOCX Processing**: Direct image extraction from Office documents  
 - **Metadata Preservation**: Structured JSON metadata for each extracted image
 - **REST API**: Simple HTTP interface for extraction requests
-- **Health Monitoring**: Built-in health check endpoints
+- **Integration**: Automatic image processing before Paperless NGX import
 
-## API Endpoints
+## Current Status: NOT IMPLEMENTED
 
-- `POST /extract` - Extract images from document
-- `GET /health` - Health check
-- `GET /status` - Service status
+**Reason**: Simplified architecture focusing on document management workflow
 
-## Configuration
+**Current Priority**: 
+1. ? Document monitoring and import
+2. ? Paperless NGX integration via MCP
+3. ? Claude AI analysis capabilities
+4. ? Dolibarr ERP integration
+5. ? Image extraction (future enhancement)
 
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `INPUT_FOLDER` | `/shared` | Folder to monitor for documents |
-| `OUTPUT_FOLDER` | `/paperless-media/extracted_images` | Output directory for images |
-| `LOG_LEVEL` | `INFO` | Logging level |
+## Future Integration Plan
 
-## Usage
+When implemented, this service would:
+
+1. **Pre-process documents** before Paperless NGX import
+2. **Extract embedded images** from PDF/DOCX files
+3. **Generate metadata** linking images to source documents
+4. **Store images** in organized folder structure
+5. **Enable image-based queries** via Claude AI
+
+## Alternative Approach
+
+For immediate image needs, use Paperless NGX built-in capabilities:
+- Paperless NGX already extracts and indexes document images
+- Claude Desktop can analyze documents including embedded images
+- Manual image extraction can be done as needed
+
+## Development Notes
+
+If implementing this service later:
 
 ```bash
-# Extract images from a document
-curl -X POST http://image-extractor:8080/extract \
-  -H "Content-Type: application/json" \
-  -d '{"file_path": "/shared/document.pdf"}'
+# Planned dependencies
+pip install PyMuPDF python-docx Pillow fastapi uvicorn
+
+# Planned API endpoints
+POST /extract - Extract images from document
+GET /health - Health check
+GET /status - Service status
 ```
 
-## Docker
+## Focus on Core Value
 
-```bash
-docker build -t nauticparts-image-extractor .
-docker run -d \
-  --name image-extractor \
-  -v /path/to/shared:/shared \
-  -v /path/to/paperless/media:/paperless-media \
-  nauticparts-image-extractor
-```
+Current implementation prioritizes:
+- **Document workflow automation** ?
+- **AI-powered analysis** ?  
+- **ERP integration** ?
+- **User experience** ?
+
+Image extraction adds value but is not essential for the core workflow.
