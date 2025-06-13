@@ -1,46 +1,42 @@
-# Webhook Handler Service
+# Unused Services - Architectural Decision
 
-Processes Paperless NGX webhooks and communicates with Claude AI via MCP for document analysis and product recognition.
+The following services were initially planned but are not implemented due to simplified architecture using existing MCP servers:
 
-## Features
+## Webhook Handler Service - NOT IMPLEMENTED
 
-- **Webhook Processing**: Receives Paperless NGX document webhooks
-- **Claude Integration**: Communicates with Claude Desktop via MCP protocol
-- **Product Recognition**: Triggers AI analysis for product identification
-- **User Confirmation**: Manages approval workflow for ERP integration
-- **Health Monitoring**: Built-in status and health endpoints
+**Original Plan**: Custom webhook handler to receive Paperless NGX webhooks and communicate with Claude AI
 
-## API Endpoints
+**Current Solution**: Use existing **nloui/paperless-mcp** server that provides direct Claude Desktop integration with Paperless NGX API
 
-- `POST /webhook` - Paperless NGX webhook receiver
-- `GET /health` - Health check
-- `GET /status` - Service status and statistics
-- `POST /confirm` - User confirmation endpoint
+**Benefits of Current Approach**:
+- No custom webhook infrastructure needed
+- Battle-tested, community-maintained solution
+- Direct MCP integration with Claude Desktop
+- Full Paperless NGX API coverage
 
-## Configuration
+## Image Extraction Service - OPTIONAL/FUTURE
 
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `CLAUDE_MCP_URL` | - | Claude MCP connection URL |
-| `PAPERLESS_API_URL` | `http://paperless-ngx:8000` | Paperless NGX API URL |
-| `PAPERLESS_API_TOKEN` | - | Paperless NGX API token |
-| `LOG_LEVEL` | `INFO` | Logging level |
+**Status**: Marked as optional for future implementation
 
-## Workflow
+**Reason**: Focus on core document management workflow first
 
-1. Receive webhook from Paperless NGX when document is processed
-2. Fetch document content via Paperless API
-3. Send to Claude AI for product analysis
-4. If product detected, request user confirmation
-5. On approval, trigger Dolibarr connector
+**Current Workflow**: 
+1. Documents ? Paperless NGX ? Claude analysis via MCP
+2. Image extraction can be added later without disrupting core functionality
 
-## Docker
+## Configuration Notes
 
-```bash
-docker build -t nauticparts-webhook-handler .
-docker run -d \
-  --name webhook-handler \
-  -p 3000:3000 \
-  -e PAPERLESS_API_TOKEN=your_token \
-  nauticparts-webhook-handler
+Instead of custom services, configure Claude Desktop MCP:
+
+```json
+{
+  "mcpServers": {
+    "paperless": {
+      "command": "npx",
+      "args": ["paperless-mcp", "http://your-oci-server:8000", "your-paperless-api-token"]
+    }
+  }
+}
 ```
+
+This provides all document management capabilities through Claude Desktop directly.
